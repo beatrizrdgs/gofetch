@@ -92,7 +92,7 @@ func (h *Hardware) printGPU() {
 		if strings.Contains(line, "VGA compatible controller") || strings.Contains(line, "3D controller") {
 			start := strings.Index(line, "controller") + len("controller: ")
 			end := strings.Index(line, " (rev")
-			fmt.Println(line[start:end])
+			fmt.Println("GPU:", line[start:end])
 		}
 	}
 }
