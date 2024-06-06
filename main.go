@@ -11,6 +11,11 @@ import (
 	"github.com/shirou/gopsutil/mem"
 )
 
+func main() {
+	sys := NewSystem()
+	sys.printAttributes()
+}
+
 type System struct {
 	Hostname  string
 	Username  string
@@ -18,35 +23,42 @@ type System struct {
 	Distro    string
 	Kernel    string
 	Shell     string
+	CPU       string
+	GPU       string
+	RAM       string
+	Disk      string
 }
 
-type Hardware struct {
-	CPU    string
-	GPU    string
-	Memory string
+func NewSystem() *System {
+	return &System{
+		Hostname:  getHostname(),
+		Username:  getUsername(),
+		GoVersion: getGoVersion(),
+		Distro:    getDistro(),
+		Kernel:    "5.10.23-1-lts",
+		Shell:     "/bin/bash",
+		CPU:       getCPU(),
+		GPU:       getGPU(),
+		RAM:       getRAMUsage(),
+		Disk:      getDiskUsage(),
+	}
 }
 
-func main() {
-	system := System{}
-	hardware := Hardware{}
-
-	system.printUserAtHost()
-	system.printHostname()
-	system.printUsername()
-	system.printGoVersion()
-
-	hardware.printCPU()
-	hardware.printGPU()
-	hardware.printMemory()
-
-	// fmt.Println(gopherASCII)
+func (s *System) printAttributes() {
+	fmt.Println(s.Username + "@" + s.Hostname)
+	fmt.Println("------------------------")
+	fmt.Println("Hostname:", s.Hostname)
+	fmt.Println("Username:", s.Username)
+	fmt.Println("Go version:", s.GoVersion)
+	fmt.Println("Distro:", s.Distro)
+	fmt.Println("Kernel:", s.Kernel)
+	fmt.Println("Shell:", s.Shell)
+	fmt.Println("CPU:", s.CPU)
+	fmt.Println("GPU:", s.GPU)
+	fmt.Println("Memory:", s.Disk, "MiB /", s.RAM, "MiB")
 }
 
-func (s *System) printUserAtHost() {
-	fmt.Println(s.getUsername() + "@" + s.getHostname())
-}
-
-func (s *System) getHostname() string {
+func getHostname() string {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return ""
@@ -55,11 +67,7 @@ func (s *System) getHostname() string {
 	return hostname
 }
 
-func (s *System) printHostname() {
-	fmt.Println("Hostname:", s.getHostname())
-}
-
-func (s *System) getUsername() string {
+func getUsername() string {
 	username := os.Getenv("USER")
 	if username == "" {
 		return ""
@@ -68,23 +76,31 @@ func (s *System) getUsername() string {
 	return username
 }
 
-func (s *System) printUsername() {
-	fmt.Println("User:", s.getUsername())
-}
-
-func (s *System) printGoVersion() {
+func getGoVersion() string {
 	cmd := exec.Command("go", "version")
 	out, err := cmd.Output()
 	if err != nil {
-		return
+		return ""
 	}
-	fmt.Println("Go Version:", string(out[13:19]))
+
+	return string(out[13:19])
 }
 
-func (h *Hardware) printCPU() {
+func getDistro() string {
+	cmd := exec.Command("cat", "/etc/os-release")
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	start := strings.Index(string(out), "NAME=") + len("NAME=") + 1
+	end := strings.Index(string(out), "\"\n")
+	return string(out)[start:end]
+}
+
+func getCPU() string {
 	cpuInfo, err := cpu.Info()
 	if err != nil {
-		return
+		return ""
 	}
 
 	var cpus []string
@@ -96,16 +112,14 @@ func (h *Hardware) printCPU() {
 		}
 	}
 
-	for _, cpu := range cpus {
-		fmt.Println("CPU:", cpu)
-	}
+	return strings.Join(cpus, ", ")
 }
 
-func (h *Hardware) printGPU() {
+func getGPU() string {
 	cmd := exec.Command("lspci")
 	output, err := cmd.Output()
 	if err != nil {
-		return
+		return ""
 	}
 
 	lines := strings.Split(string(output), "\n")
@@ -113,16 +127,14 @@ func (h *Hardware) printGPU() {
 		if strings.Contains(line, "VGA compatible controller") || strings.Contains(line, "3D controller") {
 			start := strings.Index(line, "controller") + len("controller: ")
 			end := strings.Index(line, " (rev")
-			fmt.Println("GPU:", line[start:end])
+			return line[start:end]
 		}
 	}
+
+	return ""
 }
 
-func (h *Hardware) printMemory() {
-	fmt.Println("Memory:", h.getDiskUsage(), "MiB /", h.getRAMUsage(), "MiB")
-}
-
-func (h *Hardware) getRAMUsage() string {
+func getRAMUsage() string {
 	vmStat, err := mem.VirtualMemory()
 	if err != nil {
 		return ""
@@ -131,7 +143,7 @@ func (h *Hardware) getRAMUsage() string {
 	return fmt.Sprint(ram)
 }
 
-func (h *Hardware) getDiskUsage() string {
+func getDiskUsage() string {
 	diskStat, err := disk.Usage("/")
 	if err != nil {
 		return ""
