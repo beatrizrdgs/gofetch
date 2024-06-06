@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/mem"
 )
 
 type System struct {
@@ -35,9 +37,9 @@ func main() {
 
 	hardware.printCPU()
 	hardware.printGPU()
-	// hardware.printMemory()
+	hardware.printMemory()
 
-	fmt.Println(gopherASCII)
+	// fmt.Println(gopherASCII)
 }
 
 func (s *System) printUserAtHost() {
@@ -116,8 +118,29 @@ func (h *Hardware) printGPU() {
 	}
 }
 
-var gopherASCII = `
+func (h *Hardware) printMemory() {
+	fmt.Println("Memory:", h.getDiskUsage(), "MiB /", h.getRAMUsage(), "MiB")
+}
 
+func (h *Hardware) getRAMUsage() string {
+	vmStat, err := mem.VirtualMemory()
+	if err != nil {
+		return ""
+	}
+	ram := vmStat.Total / 1024 / 1024
+	return fmt.Sprint(ram)
+}
+
+func (h *Hardware) getDiskUsage() string {
+	diskStat, err := disk.Usage("/")
+	if err != nil {
+		return ""
+	}
+	disk := diskStat.Total / 1024 / 1024
+	return fmt.Sprint(disk)
+}
+
+var gopherASCII = `
                     %%%%%%%%%%%
     %%%%    %%%%%%%%%%%%%%%%%%%%%%%%%%%   %%%%
    %%%( %%%%@@@@@@@@@@%%%%%%%@@@@@@@@@%%%%   %%
@@ -136,5 +159,4 @@ var gopherASCII = `
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 `
