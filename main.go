@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/shirou/gopsutil/cpu"
 )
@@ -32,7 +33,7 @@ func main() {
 	// system.printGoVersion()
 
 	hardware.printCPU()
-	// hardware.printGPU()
+	hardware.printGPU()
 	// hardware.printMemory()
 }
 
@@ -76,5 +77,22 @@ func (h *Hardware) printCPU() {
 
 	for _, cpu := range cpus {
 		fmt.Println("CPU:", cpu)
+	}
+}
+
+func (h *Hardware) printGPU() {
+	cmd := exec.Command("lspci")
+	output, err := cmd.Output()
+	if err != nil {
+		return
+	}
+
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "VGA compatible controller") || strings.Contains(line, "3D controller") {
+			start := strings.Index(line, "controller") + len("controller: ")
+			end := strings.Index(line, " (rev")
+			fmt.Println(line[start:end])
+		}
 	}
 }
