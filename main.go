@@ -19,6 +19,7 @@ func main() {
 type System struct {
 	Hostname  string
 	Username  string
+	Host      string
 	GoVersion string
 	Distro    string
 	Kernel    string
@@ -30,9 +31,15 @@ type System struct {
 }
 
 func NewSystem() *System {
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = ""
+	}
+
 	return &System{
-		Hostname:  getHostname(),
-		Username:  getUsername(),
+		Hostname:  hostname,
+		Username:  os.Getenv("USER"),
+		Host:      getHost(),
 		GoVersion: getGoVersion(),
 		Distro:    getDistro(),
 		Kernel:    getKernel(),
@@ -47,8 +54,7 @@ func NewSystem() *System {
 func (s *System) printAttributes() {
 	fmt.Println(s.Username + "@" + s.Hostname)
 	fmt.Println("------------------------")
-	fmt.Println("Hostname:", s.Hostname)
-	fmt.Println("Username:", s.Username)
+	fmt.Println("Host:", s.Host)
 	fmt.Println("Go version:", s.GoVersion)
 	fmt.Println("Distro:", s.Distro)
 	fmt.Println("Kernel:", s.Kernel)
@@ -58,22 +64,14 @@ func (s *System) printAttributes() {
 	fmt.Println("Memory:", s.Disk, "MiB /", s.RAM, "MiB")
 }
 
-func getHostname() string {
-	hostname, err := os.Hostname()
+func getHost() string {
+	cmd := exec.Command("cat", "/sys/devices/virtual/dmi/id/product_name")
+	out, err := cmd.Output()
 	if err != nil {
 		return ""
 	}
 
-	return hostname
-}
-
-func getUsername() string {
-	username := os.Getenv("USER")
-	if username == "" {
-		return ""
-	}
-
-	return username
+	return string(out[:len(out)-1])
 }
 
 func getGoVersion() string {
