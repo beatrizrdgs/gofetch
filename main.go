@@ -25,30 +25,47 @@ type Hardware struct {
 }
 
 func main() {
-	// system := System{}
+	system := System{}
 	hardware := Hardware{}
 
-	// system.printHostname()
-	// system.printUsername()
-	// system.printGoVersion()
+	system.printUserAtHost()
+	system.printHostname()
+	system.printUsername()
+	system.printGoVersion()
 
 	hardware.printCPU()
 	hardware.printGPU()
 	// hardware.printMemory()
 }
 
-func (s *System) printHostname() {
+func (s *System) printUserAtHost() {
+	fmt.Println(s.getUsername() + "@" + s.getHostname())
+}
+
+func (s *System) getHostname() string {
 	hostname, err := os.Hostname()
 	if err != nil {
-		return
+		return ""
 	}
 
-	fmt.Println("hostname:", hostname)
+	return hostname
+}
+
+func (s *System) printHostname() {
+	fmt.Println("Hostname:", s.getHostname())
+}
+
+func (s *System) getUsername() string {
+	username := os.Getenv("USER")
+	if username == "" {
+		return ""
+	}
+
+	return username
 }
 
 func (s *System) printUsername() {
-	username := os.Getenv("USER")
-	fmt.Println("username:", username)
+	fmt.Println("User:", s.getUsername())
 }
 
 func (s *System) printGoVersion() {
@@ -57,7 +74,7 @@ func (s *System) printGoVersion() {
 	if err != nil {
 		return
 	}
-	fmt.Println(string(out[13:19]))
+	fmt.Println("Go Version:", string(out[13:19]))
 }
 
 func (h *Hardware) printCPU() {
