@@ -35,7 +35,7 @@ func NewSystem() *System {
 		Username:  getUsername(),
 		GoVersion: getGoVersion(),
 		Distro:    getDistro(),
-		Kernel:    "5.10.23-1-lts",
+		Kernel:    getKernel(),
 		Shell:     "/bin/bash",
 		CPU:       getCPU(),
 		GPU:       getGPU(),
@@ -95,6 +95,16 @@ func getDistro() string {
 	start := strings.Index(string(out), "NAME=") + len("NAME=") + 1
 	end := strings.Index(string(out), "\"\n")
 	return string(out)[start:end]
+}
+
+func getKernel() string {
+	cmd := exec.Command("uname", "-r")
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	return string(out[:len(out)-1])
 }
 
 func getCPU() string {
