@@ -2,6 +2,7 @@ package gofetch
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -38,6 +39,12 @@ func getDistro() string {
 
 func getKernel() string {
 	out := getCmdOutput("uname", "-r")
+	return out[:len(out)-1]
+}
+
+func getShell() string {
+	shellPath := os.Getenv("SHELL")
+	out := getCmdOutput("basename", shellPath)
 	return out[:len(out)-1]
 }
 

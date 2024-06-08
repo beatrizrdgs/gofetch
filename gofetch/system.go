@@ -36,7 +36,7 @@ func NewSystem() *System {
 		GoVersion: getGoVersion(),
 		Distro:    getDistro(),
 		Kernel:    getKernel(),
-		Shell:     os.Getenv("SHELL"),
+		Shell:     getShell(),
 		CPU:       getCPU(),
 		GPU:       getGPU(),
 		RAM:       getRAMUsage(),
