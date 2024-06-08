@@ -17,26 +17,35 @@ const (
 
 func main() {
 	s := NewSystem()
-	fmt.Println(s.replaceASCII(gopherASCII))
-}
-
-func (s *System) attrsMap() map[string]string {
-	return map[string]string{
-		"Host":      s.Host,
-		"GoVersion": s.GoVersion,
-		"Distro":    s.Distro,
-		"Kernel":    s.Kernel,
-		"Shell":     s.Shell,
-		"CPU":       s.CPU,
-		"GPU":       s.GPU,
-		"RAM":       s.RAM,
-		"Disk":      s.Disk,
+	userAtHost := s.Username + "@" + s.Hostname
+	attrs := []string{
+		userAtHost,
+		s.getDashes(userAtHost),
+		fmt.Sprintf("Host: %s", s.Host),
+		fmt.Sprintf("Go version: %s", s.GoVersion),
+		fmt.Sprintf("Distro: %s", s.Distro),
+		fmt.Sprintf("Kernel: %s", s.Kernel),
+		fmt.Sprintf("Shell: %s", s.Shell),
+		fmt.Sprintf("CPU: %s", s.CPU),
+		fmt.Sprintf("GPU: %s", s.GPU),
+		fmt.Sprintf("Memory: %s MiB / %s MiB", s.Disk, s.RAM),
+		getColorBar(colors),
+		getColorBar(brightColors),
 	}
+	fmt.Println(s.replaceASCII(gopherASCII, attrs))
 }
 
-func (s *System) replaceASCII(ascii string) string {
-	for k, v := range s.attrsMap() {
-		ascii = strings.Replace(ascii, "%s", k+": "+v, 1)
+func (s *System) getDashes(str string) string {
+	var dashes string
+	for i := 0; i < len(str); i++ {
+		dashes += "-"
+	}
+	return dashes
+}
+
+func (s *System) replaceASCII(ascii string, ss []string) string {
+	for _, s := range ss {
+		ascii = strings.Replace(ascii, "%s", s, 1)
 	}
 	return ascii
 }
@@ -88,8 +97,6 @@ func (s *System) printAttributes() {
 	printMultiValues("GPU", s.GPU)
 	fmt.Println("Memory:", s.Disk, "MiB /", s.RAM, "MiB")
 	fmt.Println()
-	printColorBar(colors)
-	printColorBar(brightColors)
 }
 
 func printMultiValues(item, val string) {
@@ -232,12 +239,13 @@ var (
 	}
 )
 
-func printColorBar(cc []string) {
+func getColorBar(cc []string) string {
+	var bar string
 	for _, c := range cc {
-		fmt.Print("█████", c)
+		bar += fmt.Sprintf("%s█████", c)
 	}
-	resetColor()
-	fmt.Println()
+	bar += RESET
+	return bar
 }
 
 func resetColor() {
@@ -245,7 +253,7 @@ func resetColor() {
 }
 
 var gopherASCII = `
-	   ,_---~~~~~----._                                            
+	   ,_---~~~~~----._         
     _,,_,*^____       _____^*,_,,_         %s
    / __/ /'     \    /     '\ \__ \        %s 
   [  @f | @))    |  | @))   | f@  ]        %s
@@ -256,4 +264,6 @@ var gopherASCII = `
    ]                             |         %s
    |                             |         %s
    |                             |         %s
-`
+					   %s
+					   %s
+   `
