@@ -48,6 +48,10 @@ func (s *System) getUserAtHost() string {
 	return s.Username + "@" + s.Hostname
 }
 
+func (s *System) coloredUserAtHost() string {
+	return fmt.Sprintf(CYAN + s.Username + RESET + "@" + CYAN + s.Hostname + RESET)
+}
+
 func (s *System) getDashes(str string) string {
 	var dashes string
 	for i := 0; i < len(str); i++ {
@@ -57,18 +61,17 @@ func (s *System) getDashes(str string) string {
 }
 
 func (s *System) makeAttrs() []string {
-	userAtHost := s.getUserAtHost()
 	return []string{
-		userAtHost,
-		s.getDashes(userAtHost),
-		fmt.Sprintf("Host: %s", s.Host),
-		fmt.Sprintf("Go version: %s", s.GoVersion),
-		fmt.Sprintf("Distro: %s", s.Distro),
-		fmt.Sprintf("Kernel: %s", s.Kernel),
-		fmt.Sprintf("Shell: %s", s.Shell),
-		fmt.Sprintf("CPU: %s", s.CPU),
-		fmt.Sprintf("GPU: %s", s.GPU),
-		fmt.Sprintf("Memory: %s MiB / %s MiB", s.Disk, s.RAM),
+		s.coloredUserAtHost(),
+		s.getDashes(s.getUserAtHost()),
+		fmt.Sprintf("%sHost%s: %s", CYAN, RESET, s.Host),
+		fmt.Sprintf("%sGo version%s: %s", CYAN, RESET, s.GoVersion),
+		fmt.Sprintf("%sDistro%s: %s", CYAN, RESET, s.Distro),
+		fmt.Sprintf("%sKernel%s: %s", CYAN, RESET, s.Kernel),
+		fmt.Sprintf("%sShell%s: %s", CYAN, RESET, s.Shell),
+		fmt.Sprintf("%sCPU%s: %s", CYAN, RESET, s.CPU),
+		fmt.Sprintf("%sGPU%s: %s", CYAN, RESET, s.GPU),
+		fmt.Sprintf("%sMemory%s: %s MiB / %s MiB", CYAN, RESET, s.Disk, s.RAM),
 		getColorBar(colors),
 		getColorBar(brightColors),
 	}
